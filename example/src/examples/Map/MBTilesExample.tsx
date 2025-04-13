@@ -14,82 +14,38 @@ import Mapbox, {
   VectorSource,
   FillLayer,
 } from '@rnmapbox/maps';
-import MBTiles from '../../../../src/modules/MBTiles';
+import MBTiles, { MBTilesSource } from '../../../../src/modules/MBTiles';
 import type { ExampleWithMetadata } from '../common/ExampleMetadata';
+import RNFS from 'react-native-fs';
+
+//https://gist.github.com/typebrook/7d25be326f0e9afd58e0bbc333d2a175#file-mbtilessource-kt-L31-L34
 
 /**
  * Example demonstrating how to use MBTiles files with the map
  */
+const mbtilesPath =
+  Platform.OS === 'android'
+    ? `file:///${RNFS.DocumentDirectoryPath}/ubombo.mbtiles`
+    : `file://${RNFS.LibraryDirectoryPath}/ubombo.mbtiles`;
+
+console.log(RNFS.LibraryDirectoryPath);
+
 const MBTilesExample = () => {
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  //   const [mapStyle, setMapStyle] = useState<any>(null);
-  const [sourceId] = useState('mbtiles-source');
+  const [source, setSource] = useState<MBTilesSource | null>(null);
 
   // This would be the path to your MBTiles file
   // For a real app, you might want to use ReactNative's DocumentPicker
   // to let users select their own MBTiles files
-  const mbtilesPath =
-    Platform.OS === 'android'
-      ? 'file:///data/data/com.rnmapboxglexample/databases/ubombo.mbtiles'
-      : '';
 
-  //   useEffect(() => {
-  //     const initMBTiles = async () => {
-  //       try {
-  //         if (Platform.OS !== 'android') {
-  //           throw new Error(
-  //             'MBTiles support is currently only available on Android',
-  //           );
-  //         }
-
-  //         setLoading(true);
-  //         setError(null);
-
-  //         // Initialize MBTiles source
-  //   const source = await MBTiles.initFromFile(mbtilesPath, sourceId);
-  //   console.log('MBTiles source:', source);
-
-  //   setLoading(false);
-  //       } catch (err: any) {
-  //         console.error('Failed to initialize MBTiles:', err);
-  //         setError(err.message || 'Failed to initialize MBTiles');
-  //         setLoading(false);
-  //       }
-  //     };
-
-  //     initMBTiles();
-
-  //     // Clean up the MBTiles source when unmounting
-  //     return () => {
-  //       if (Platform.OS === 'android') {
-  //         MBTiles.remove(sourceId).catch(console.error);
-  //       }
-  //     };
-  //   }, [sourceId, mbtilesPath]);
-
-  //   if (loading) {
-  //     return (
-  //       <View style={styles.container}>
-  //         <ActivityIndicator size="large" color="#0000ff" />
-  //         <Text style={styles.text}>Loading MBTiles...</Text>
-  //       </View>
-  //     );
-  //   }
-
-  if (error) {
-    return (
-      <View style={styles.container}>
-        <Text style={styles.errorText}>{error}</Text>
-        <Text style={styles.infoText}>
-          This example requires:
-          {'\n'}1. Android device
-          {'\n'}2. A valid MBTiles file at {mbtilesPath}
-          {'\n'}3. Storage permission granted to the app
-        </Text>
-      </View>
-    );
-  }
+  useEffect(() => {
+    // Clean up the MBTiles source when unmounting
+    return () => {
+      if (source) {
+        console.log('Removing MBTiles source:', source.id);
+        MBTiles.remove(source.id).catch(console.error);
+      }
+    };
+  }, [source]);
 
   return (
     <View style={styles.container}>
@@ -97,27 +53,32 @@ const MBTilesExample = () => {
         style={styles.map}
         styleURL={Mapbox.StyleURL.Dark}
         onDidFinishLoadingStyle={async () => {
-          console.log('Called');
-          const source = await MBTiles.initFromFile(mbtilesPath, sourceId);
-          console.log('MBTiles source:', source);
-
-          //   setLoading(false);
+          console.log('Style loaded, initializing MBTiles');
+          const source = await MBTiles.initFromFile(
+            mbtilesPath,
+            'mbtiles-source',
+          );
+          setSource(source);
         }}
       >
-        <VectorSource
-          id="customTiles1"
-          // url={"file:///data/data/com.sqrsoftware.mobilize/databases/ubombo.mbtiles"}
-          // tileUrlTemplates={[`file:///data/data/com.sqrsoftware.mobilize/databases/ubombo.mbtiles/{z}/{x}/{y}.pbf`]}
-          tileUrlTemplates={[
-            `http://localhost:8888/${sourceId}/{z}/{x}/{y}.pbf`,
-          ]}
-        >
-          <FillLayer
-            id="fields"
-            sourceLayerID="ubombo_fields"
-            style={{ fillColor: 'blue' }}
-          />
-        </VectorSource>
+        <Camera
+          // zoomLevel={minZoom}
+          // minZoomLevel={minZoom}
+          // maxZoomLevel={maxZoom || 16}
+          animationMode="none"
+          centerCoordinate={[31.9, -26.6]} // Approximate center for Ubombo region
+        />
+        {source && (
+          <VectorSource id="customTiles1" tileUrlTemplates={[source.url]}>
+            <FillLayer
+              maxZoomLevel={source?.maxZoom}
+              minZoomLevel={source?.minZoom}
+              id="fields"
+              sourceLayerID="ubombo_fields"
+              style={{ fillColor: 'blue' }}
+            />
+          </VectorSource>
+        )}
       </MapView>
 
       <View style={styles.infoPanel}>
@@ -162,6 +123,9 @@ const styles = StyleSheet.create({
     padding: 10,
     margin: 10,
     width: '90%',
+  },
+  loader: {
+    marginTop: 5,
   },
 });
 
