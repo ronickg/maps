@@ -1,5 +1,8 @@
 export { default as CameraGestureObserver } from './CameraGestureObserver';
 export { default as ChangeLayerColor } from './ChangeLayerColor';
+export { default as CreateOfflineRegion } from './CreateOfflineRegion';
+export { default as OfflineExample } from './OfflineExample';
+export { default as MBTilesExample } from './MBTilesExample';
 export { default as Ornaments } from './Ornaments';
 export { default as PointInMapView } from './PointInMapView';
 export { default as ShowAndHideLayer } from './ShowAndHideLayer';
