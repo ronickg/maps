@@ -47,6 +47,7 @@ import com.rnmapbox.rnmbx.components.styles.sources.RNMBXVectorSourceManager
 import com.rnmapbox.rnmbx.components.styles.terrain.RNMBXTerrainManager
 import com.rnmapbox.rnmbx.modules.RNMBXLocationModule
 import com.rnmapbox.rnmbx.modules.RNMBXLogging
+import com.rnmapbox.rnmbx.modules.RNMBXMBTilesModule
 import com.rnmapbox.rnmbx.modules.RNMBXModule
 import com.rnmapbox.rnmbx.modules.RNMBXOfflineModule
 import com.rnmapbox.rnmbx.modules.RNMBXOfflineModuleLegacy
@@ -97,6 +98,7 @@ class RNMBXPackage : TurboReactPackage() {
             RNMBXOfflineModuleLegacy.REACT_CLASS -> return RNMBXOfflineModuleLegacy(reactApplicationContext)
             RNMBXSnapshotModule.REACT_CLASS -> return RNMBXSnapshotModule(reactApplicationContext)
             RNMBXLogging.REACT_CLASS -> return RNMBXLogging(reactApplicationContext)
+            "RNMBXMBTiles" -> return RNMBXMBTilesModule(reactApplicationContext)
             NativeMapViewModule.NAME -> return NativeMapViewModule(reactApplicationContext, getViewTagResolver(reactApplicationContext, s))
             RNMBXCameraModule.NAME -> return RNMBXCameraModule(reactApplicationContext, getViewTagResolver(reactApplicationContext, s))
             RNMBXViewportModule.NAME -> return RNMBXViewportModule(reactApplicationContext, getViewTagResolver(reactApplicationContext, s))
@@ -228,6 +230,15 @@ class RNMBXPackage : TurboReactPackage() {
                 false,  // canOverrideExistingModule
                 false,  // needsEagerInit
                 true,  // hasConstants
+                false,  // isCxxModule
+                false // isTurboModule
+            )
+            moduleInfos["RNMBXMBTiles"] = ReactModuleInfo(
+                "RNMBXMBTiles",
+                "RNMBXMBTiles",
+                false,  // canOverrideExistingModule
+                false,  // needsEagerInit
+                false,  // hasConstants
                 false,  // isCxxModule
                 false // isTurboModule
             )
