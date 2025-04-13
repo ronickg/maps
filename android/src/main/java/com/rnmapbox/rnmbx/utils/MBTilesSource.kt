@@ -128,7 +128,17 @@ class MBTilesSource(filePath: String, sourceId: String? = null) {
 
     fun deactivate() = with(MBTilesServer) {
         sources.remove(id)
-        if (isRunning && sources.isEmpty()) stop()
+
+        if (isRunning && sources.isEmpty()) {
+            stop()
+        }
+
+        // Close the database connection
+        try {
+            db.close()
+        } catch (e: Exception) {
+            Log.e(TAG, "Error closing database for source $id: ${e.localizedMessage}")
+        }
     }
 
     companion object {

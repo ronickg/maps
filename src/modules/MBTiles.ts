@@ -25,9 +25,6 @@ class MBTiles {
     filePath: string,
     sourceId?: string,
   ): Promise<MBTilesSource> {
-    if (Platform.OS !== 'android') {
-      throw new Error('MBTiles support is currently only available on Android');
-    }
     return await RNMBXMBTiles.initMBTilesSource(filePath, sourceId || '');
   }
 
@@ -41,9 +38,6 @@ class MBTiles {
     assetName: string,
     sourceId?: string,
   ): Promise<MBTilesSource> {
-    if (Platform.OS !== 'android') {
-      throw new Error('MBTiles support is currently only available on Android');
-    }
     return await RNMBXMBTiles.initMBTilesSourceFromAsset(
       assetName,
       sourceId || '',
@@ -56,44 +50,32 @@ class MBTiles {
    * @returns URL to use in style JSON
    */
   async getURL(sourceId: string): Promise<string> {
-    if (Platform.OS !== 'android') {
-      throw new Error('MBTiles support is currently only available on Android');
-    }
     return await RNMBXMBTiles.getMBTilesURL(sourceId);
   }
 
   /**
-   * Remove an MBTiles source
+   * Remove an MBTiles source and release its resources
    * @param sourceId ID of the MBTiles source to remove
-   * @returns true if the source was removed, false if it wasn't found
+   * @returns True if the source was removed, false if it didn't exist
    */
   async remove(sourceId: string): Promise<boolean> {
-    if (Platform.OS !== 'android') {
-      return false;
-    }
     return await RNMBXMBTiles.removeMBTilesSource(sourceId);
   }
 
   /**
    * Check if an MBTiles source is active
-   * @param sourceId ID of the MBTiles source
-   * @returns true if the source is active
+   * @param sourceId ID of the MBTiles source to check
+   * @returns True if the source is active, false otherwise
    */
   async isActive(sourceId: string): Promise<boolean> {
-    if (Platform.OS !== 'android') {
-      return false;
-    }
     return await RNMBXMBTiles.isMBTilesSourceActive(sourceId);
   }
 
   /**
-   * Get a list of all active MBTiles sources
+   * Get all active MBTiles sources
    * @returns Array of source IDs
    */
   async getActiveSources(): Promise<string[]> {
-    if (Platform.OS !== 'android') {
-      return [];
-    }
     return await RNMBXMBTiles.getActiveMBTilesSources();
   }
 }
