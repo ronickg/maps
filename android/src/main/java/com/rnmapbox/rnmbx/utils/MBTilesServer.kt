@@ -16,19 +16,31 @@ object MBTilesServer : Runnable {
 
     private const val TAG = "MBTilesServer"
     const val port = 8888
-    private val serverSocket: ServerSocket = ServerSocket(port)
+    private var serverSocket: ServerSocket? = null
     var isRunning = false
     val sources: MutableMap<String, MBTilesSource> = mutableMapOf()
 
     fun start() {
+        if (serverSocket == null || serverSocket?.isClosed == true) {
+            try {
+                serverSocket = ServerSocket(port)
+                Log.d(TAG, "Created new server socket on port $port")
+            } catch (e: Exception) {
+                Log.e(TAG, "Error creating server socket: ${e.localizedMessage}")
+                return
+            }
+        }
+
         isRunning = true
         Thread(this).start()
+        Log.d(TAG, "MBTiles server started")
     }
 
     fun stop() {
         isRunning = false
         try {
-            serverSocket.close()
+            serverSocket?.close()
+            Log.d(TAG, "Server socket closed")
         } catch (e: Exception) {
             Log.e(TAG, "Error closing server socket: ${e.localizedMessage}")
         }
@@ -36,18 +48,24 @@ object MBTilesServer : Runnable {
 
     override fun run() {
         try {
-            while (isRunning) {
-                serverSocket.accept().use { socket ->
+            while (isRunning && serverSocket != null && !serverSocket!!.isClosed) {
+                val socket = serverSocket!!.accept()
+                try {
                     Log.d(TAG, "Handling request")
                     handle(socket)
                     Log.d(TAG, "Request handled")
+                } finally {
+                    try {
+                        socket.close()
+                    } catch (e: Exception) {
+                        Log.e(TAG, "Error closing client socket: ${e.localizedMessage}")
+                    }
                 }
             }
         } catch (e: Exception) {
-            Log.d(
-                TAG,
-                e.localizedMessage ?: "Exception while running MBTilesServer"
-            )
+            if (isRunning) {  // Only log if we weren't deliberately stopping
+                Log.e(TAG, e.localizedMessage ?: "Exception while running MBTilesServer")
+            }
         } finally {
             Log.d(TAG, "Server stopped")
         }
@@ -108,7 +126,7 @@ object MBTilesServer : Runnable {
     private fun loadContent(source: MBTilesSource, route: String): ByteArray? = try {
         val (z, x, y) = route.split("/").subList(1, 4).map { it.toInt() }
         source.getTile(z, x, (2.0.pow(z)).toInt() - 1 - y)
-    } catch (e: FileNotFoundException) {
+    } catch (e: Exception) {
         e.printStackTrace()
         null
     }
